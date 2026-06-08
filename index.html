@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing Mix &amp; Triangulation Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#123AF8; --ink:#0E161E; --light:#ECF1F9; --bg:#F4F7FE; --white:#fff;
+    --magenta:#DD004F; --green:#0E9F6E; --amber:#D98324; --purple:#6D28D9;
+    --muted:#5A6B7A; --line:#E2E8F4; --card:#FFFFFF;
+    --lc:#D98324; --mmm:#123AF8; --incr:#0E9F6E;
+    --head:'Poppins',system-ui,Segoe UI,Roboto,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);font-size:14px;line-height:1.45}
+  .wrap{max-width:1240px;margin:0 auto;padding:22px 20px 60px}
+  h1{font-size:25px;font-weight:600;margin:0}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px;max-width:760px}
+  .kicker{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--blue);text-transform:uppercase}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .grid-kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .kpi .lab{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+  .kpi .val{font-family:var(--mono);font-size:23px;font-weight:600;margin-top:3px}
+  .kpi.lc .val{color:var(--lc)} .kpi.mmm .val{color:var(--mmm)} .kpi.incr .val{color:var(--incr)}
+  .layout{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
+  @media(max-width:980px){.layout{grid-template-columns:1fr}.grid-kpi{grid-template-columns:repeat(3,1fr)}}
+  .secttl{font-size:16px;font-weight:600;margin:0 0 3px}
+  .secsub{color:var(--muted);font-size:12px;margin:0 0 14px}
+  /* budget bar */
+  .budgetbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 16px}
+  .budgetbar input[type=number]{font-family:var(--mono);font-size:15px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:130px}
+  .pill{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:20px;background:var(--light);color:var(--ink)}
+  .pill.warn{background:#FDE7EF;color:var(--magenta)}
+  .pill.ok{background:#E4F7EF;color:var(--green)}
+  button{font-family:var(--head);font-weight:500;font-size:12.5px;border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:8px;padding:8px 13px;cursor:pointer;transition:.15s}
+  button:hover{border-color:var(--blue);color:var(--blue)}
+  button.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+  button.primary:hover{background:#0d2fd0;color:#fff}
+  /* channel row */
+  .ch{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;transition:.15s}
+  .ch.off{opacity:.5;background:#FAFBFE}
+  .ch-top{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .dot{width:11px;height:11px;border-radius:50%;flex:none}
+  .ch-name{font-weight:600;font-size:14px}
+  .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:20px}
+  .tag.awareness{background:#F1E9FE;color:var(--purple)}
+  .tag.capture{background:#E6EEFE;color:var(--blue)}
+  .tag.mixed{background:#EEF1F5;color:var(--muted)}
+  .toggle{margin-left:auto;display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer;user-select:none}
+  .sw{width:34px;height:19px;border-radius:20px;background:#CBD5E6;position:relative;transition:.15s;flex:none}
+  .sw::after{content:"";position:absolute;width:15px;height:15px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.15s}
+  .toggle.on .sw{background:var(--green)} .toggle.on .sw::after{left:17px}
+  .ch-mid{display:flex;align-items:center;gap:14px}
+  .slider-wrap{flex:1}
+  input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:5px;background:var(--line);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(18,58,248,.4)}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid #fff}
+  .spendval{font-family:var(--mono);font-size:14px;font-weight:600;width:78px;text-align:right}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}
+  .m{background:var(--light);border-radius:8px;padding:6px 8px}
+  .m .l{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .m .v{font-family:var(--mono);font-size:13px;font-weight:600;margin-top:1px}
+  .lenses{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+  .lens{border-radius:8px;padding:6px 9px;border:1px solid var(--line)}
+  .lens .l{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.03em;display:flex;justify-content:space-between}
+  .lens .v{font-family:var(--mono);font-size:15px;font-weight:600;margin-top:2px}
+  .lens.lc{border-color:#F4D9BC} .lens.lc .l{color:var(--lc)} .lens.lc .v{color:var(--lc)}
+  .lens.mmm{border-color:#C5D2FB} .lens.mmm .l{color:var(--mmm)} .lens.mmm .v{color:var(--mmm)}
+  .lens.incr{border-color:#BFE9D8} .lens.incr .l{color:var(--incr)} .lens.incr .v{color:var(--incr)}
+  .barwrap{height:5px;background:var(--line);border-radius:5px;margin-top:5px;overflow:hidden}
+  .barwrap i{display:block;height:100%;border-radius:5px}
+  /* triangulation panel */
+  .tri-row{margin-bottom:14px}
+  .tri-row .lab{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+  .tri-row .lab b{font-family:var(--mono);font-weight:600}
+  .tbar{height:24px;background:var(--light);border-radius:7px;overflow:hidden;position:relative}
+  .tbar i{display:block;height:100%;border-radius:7px;transition:width .25s}
+  .insight{background:var(--light);border-radius:10px;padding:13px 14px;font-size:13px;margin-top:6px;border-left:3px solid var(--blue)}
+  .insight b{color:var(--blue)}
+  /* lab */
+  select{font-family:var(--head);font-size:13.5px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;background:#fff;cursor:pointer}
+  .labgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}
+  .labbox{background:var(--light);border-radius:9px;padding:10px 12px}
+  .labbox .l{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase}
+  .labbox .v{font-family:var(--mono);font-size:18px;font-weight:600;margin-top:2px}
+  .labbox.full{grid-column:1/3}
+  .verdict{font-size:13px;line-height:1.5;margin-top:12px;padding:12px 13px;border-radius:9px}
+  .verdict.under{background:#E4F7EF;border-left:3px solid var(--green)}
+  .verdict.over{background:#FDE7EF;border-left:3px solid var(--magenta)}
+  .verdict.fair{background:var(--light);border-left:3px solid var(--muted)}
+  .foot{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:26px;text-align:center;line-height:1.7}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:10px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  /* dashboard charts */
+  .dashgrid{display:grid;grid-template-columns:1.55fr 1fr;gap:22px;align-items:start;margin-top:4px}
+  @media(max-width:980px){.dashgrid{grid-template-columns:1fr}}
+  .chart-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;flex-wrap:wrap}
+  .chart-head .t{font-weight:600;font-size:13.5px}
+  .tabs{display:flex;gap:5px}
+  .tabs button{padding:4px 9px;font-size:11px;border-radius:7px}
+  .tabs button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .tl-svg{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .tl-x{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:4px;padding:0 4px}
+  .distrow{margin-bottom:10px}
+  .distrow .dl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+  .distrow .dl b{color:var(--ink);font-weight:600}
+  .distbar{display:flex;height:18px;border-radius:6px;overflow:hidden;background:var(--light)}
+  .distbar i{height:100%;transition:width .2s;cursor:default}
+  .distbar i:hover{filter:brightness(1.12)}
+  .chlegend{display:flex;flex-wrap:wrap;gap:9px 14px;margin-top:15px;padding-top:13px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+  .chlegend span{display:flex;align-items:center;gap:6px}
+  .chlegend i{width:10px;height:10px;border-radius:3px;flex:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Interactive model · based on the 2024–26 measurement research</div>
+  <h1>Marketing Mix &amp; Triangulation Simulator</h1>
+  <p class="sub">Move each channel's budget and watch the campaign through three measurement lenses — <b>last-click attribution</b>, <b>media mix modeling (MMM)</b> and <b>incrementality</b>. The same dollars tell three different stories. Toggle a channel off to run a live incrementality test.</p>
+
+  <div class="grid-kpi">
+    <div class="kpi"><div class="lab">Total spend / mo</div><div class="val" id="kpiSpend">$0</div></div>
+    <div class="kpi"><div class="lab">Conversions</div><div class="val" id="kpiConv">0</div></div>
+    <div class="kpi"><div class="lab">Revenue (MMM)</div><div class="val" id="kpiRev">$0</div></div>
+    <div class="kpi lc"><div class="lab">ROAS · last-click</div><div class="val" id="roasLC">0×</div></div>
+    <div class="kpi mmm"><div class="lab">ROAS · MMM</div><div class="val" id="roasMMM">0×</div></div>
+    <div class="kpi incr"><div class="lab">ROAS · incremental</div><div class="val" id="roasIncr">0×</div></div>
+  </div>
+
+  <div class="card" id="dashCard" style="margin-bottom:16px">
+    <div class="secttl">Live dashboard view</div>
+    <p class="secsub">Conversions landing day by day, and how every metric splits across channels. Both update live as you move budgets and toggle channels off.</p>
+    <div class="dashgrid">
+      <div>
+        <div class="chart-head">
+          <span class="t">Timeline <span style="color:var(--muted);font-weight:400">· 30 days, stacked by channel</span></span>
+          <span class="tabs tl-tabs">
+            <button class="active" data-m="conv">Conversions</button>
+            <button data-m="rev">Revenue</button>
+            <button data-m="spend">Spend</button>
+          </span>
+        </div>
+        <svg id="timeline" class="tl-svg" viewBox="0 0 720 230" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="tl-x"><span>Day 1</span><span>8</span><span>15</span><span>22</span><span>30</span></div>
+      </div>
+      <div>
+        <div class="chart-head"><span class="t">Metric distribution by channel</span></div>
+        <div id="dist"></div>
+      </div>
+    </div>
+    <div class="chlegend" id="chlegend"></div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: channels -->
+    <div class="card">
+      <div class="secttl">Traffic channels &amp; budget</div>
+      <p class="secsub">10 core acquisition channels. Drag to set monthly spend; switch off to remove from the mix.</p>
+      <div class="budgetbar">
+        <label style="font-size:12.5px;color:var(--muted)">Budget target&nbsp;
+          <input type="number" id="budgetTarget" value="100000" step="1000" min="0"></label>
+        <span class="pill" id="budgetStatus">—</span>
+        <button id="resetBtn">Reset</button>
+        <button id="chaseBtn">Chase last-click ✂️</button>
+        <button id="evenBtn">Spread evenly</button>
+      </div>
+      <div id="channelList"></div>
+      <div class="legend">
+        <span><i style="background:var(--lc)"></i>Last-click</span>
+        <span><i style="background:var(--mmm)"></i>MMM (true contribution)</span>
+        <span><i style="background:var(--incr)"></i>Incremental (causal)</span>
+        <span><i style="background:var(--purple)"></i>Awareness / demand-gen</span>
+        <span><i style="background:var(--blue)"></i>Capture / conversion</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: triangulation + lab -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="secttl">Triangulation — one campaign, three answers</div>
+        <p class="secsub">Blended ROAS on the same spend. The gap is exactly why you don't trust a single number.</p>
+        <div class="tri-row">
+          <div class="lab"><span style="color:var(--lc)">Last-click attribution</span><b id="triLCv" style="color:var(--lc)">0×</b></div>
+          <div class="tbar"><i id="triLC" style="background:var(--lc)"></i></div>
+        </div>
+        <div class="tri-row">
+          <div class="lab"><span style="color:var(--mmm)">Media mix modeling</span><b id="triMMMv" style="color:var(--mmm)">0×</b></div>
+          <div class="tbar"><i id="triMMM" style="background:var(--mmm)"></i></div>
+        </div>
+        <div class="tri-row">
+          <div class="lab"><span style="color:var(--incr)">Incrementality (causal)</span><b id="triIncrv" style="color:var(--incr)">0×</b></div>
+          <div class="tbar"><i id="triIncr" style="background:var(--incr)"></i></div>
+        </div>
+        <div class="insight" id="insight"></div>
+      </div>
+
+      <div class="card">
+        <div class="secttl">Incrementality lab</div>
+        <p class="secsub">Pick a channel and see what really happens if you pull it out of the mix — including the halo it gives other channels.</p>
+        <select id="labSelect"></select>
+        <div class="labgrid">
+          <div class="labbox"><div class="l">Last-click says you'd lose</div><div class="v" style="color:var(--lc)" id="labLC">$0</div></div>
+          <div class="labbox"><div class="l">True incremental loss</div><div class="v" style="color:var(--incr)" id="labIncr">$0</div></div>
+          <div class="labbox"><div class="l">Direct (own) revenue</div><div class="v" id="labOwn">$0</div></div>
+          <div class="labbox"><div class="l">Assisted (halo to others)</div><div class="v" style="color:var(--purple)" id="labHalo">$0</div></div>
+          <div class="labbox"><div class="l">Conversions lost</div><div class="v" id="labConv">0</div></div>
+          <div class="labbox"><div class="l">Campaign ROAS if removed</div><div class="v" id="labRoas">0×</div></div>
+        </div>
+        <div class="verdict" id="labVerdict"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Illustrative model for education, not a forecast · channel economics are stylised from the research (saturation / diminishing returns, last-click redistribution, halo &amp; substitution effects).<br>
+    Based on "Consolidating Marketing Channels into One Dashboard" research · June 2026 · SE Ranking
+  </div>
+</div>
+
+<script>
+const CH = [
+  {id:"paid_search", name:"Paid Search", type:"capture",   color:"#123AF8", cpc:2.5, aov:120, maxRoas:4.6, k:13000, lcf:1.45, subst:0.55, halo:0.00, recept:0.95},
+  {id:"meta",        name:"Paid Social (Meta)", type:"mixed", color:"#1877F2", cpc:1.2, aov:90,  maxRoas:3.2, k:14000, lcf:1.05, subst:0.30, halo:0.10, recept:0.40},
+  {id:"seo",         name:"Organic Search / SEO", type:"capture", color:"#0E9F6E", cpc:0.8, aov:110, maxRoas:6.2, k:9000, lcf:1.25, subst:0.50, halo:0.05, recept:0.80},
+  {id:"reddit",      name:"Reddit", type:"awareness", color:"#FF4500", cpc:0.9, aov:95,  maxRoas:2.4, k:9000, lcf:0.50, subst:0.15, halo:0.16, recept:0.10},
+  {id:"email",       name:"Email", type:"capture", color:"#7C3AED", cpc:0.3, aov:100, maxRoas:7.2, k:6000, lcf:1.50, subst:0.65, halo:0.03, recept:0.50},
+  {id:"youtube",     name:"YouTube / Video", type:"awareness", color:"#FF0000", cpc:0.6, aov:100, maxRoas:2.2, k:12000, lcf:0.55, subst:0.20, halo:0.15, recept:0.10},
+  {id:"tiktok",      name:"TikTok", type:"awareness", color:"#111111", cpc:0.7, aov:80,  maxRoas:2.3, k:10000, lcf:0.50, subst:0.18, halo:0.15, recept:0.10},
+  {id:"linkedin",    name:"LinkedIn", type:"awareness", color:"#0A66C2", cpc:5.0, aov:210, maxRoas:2.7, k:11000, lcf:0.70, subst:0.25, halo:0.10, recept:0.15},
+  {id:"affiliate",   name:"Affiliate", type:"capture", color:"#0891B2", cpc:1.5, aov:110, maxRoas:4.0, k:10000, lcf:1.30, subst:0.50, halo:0.02, recept:0.60},
+  {id:"display",     name:"Display / Programmatic", type:"awareness", color:"#D98324", cpc:0.5, aov:85, maxRoas:1.8, k:13000, lcf:0.40, subst:0.20, halo:0.12, recept:0.10},
+];
+const DEFAULTS = [22000,16000,10000,7000,5000,9000,7000,8000,6000,10000];
+const HALO = 0.5, LC_COVERAGE = 0.92, SLIDER_MAX = 40000;
+const sat = (s,k)=> s>0 ? 1-Math.exp(-s/k) : 0;
+
+let state = CH.map((c,i)=>({spend:DEFAULTS[i], active:true}));
+let timelineMetric = 'conv';
+
+// deterministic daily seasonality (weekends dip), averages to 1 over the month
+const DAYS = 30;
+const rawShare = Array.from({length:DAYS},(_,d)=>{ const dow=d%7; const wk=(dow===5||dow===6)?0.72:1.06; return wk*(1+0.12*Math.sin(d/3.3)+0.06*Math.sin(d/1.7)); });
+const shareSum = rawShare.reduce((a,b)=>a+b,0);
+const share = rawShare.map(v=>v/shareSum);
+const maxShare = Math.max(...share);
+const fmtMetric = (w,v)=> w==='conv' ? num(v)+' conv' : money(v);
+
+function compute(st){
+  const s = CH.map((c,i)=>{
+    const sp = st[i].active ? st[i].spend : 0;
+    const sa = sat(sp,c.k);
+    return {sp, sa, own:c.maxRoas*c.k*sa};
+  });
+  const demandLift = CH.reduce((a,c,i)=> a + (c.type==='awareness'? c.halo*s[i].sa : 0), 0) * HALO;
+  const per = CH.map((c,i)=>({...s[i], trueRev: s[i].own*(1+demandLift*c.recept)}));
+  const sumTrue = per.reduce((a,p)=>a+p.trueRev,0);
+  const rawLC = CH.map((c,i)=> per[i].trueRev*c.lcf);
+  const sumRawLC = rawLC.reduce((a,b)=>a+b,0) || 1;
+  const lcScale = (LC_COVERAGE*sumTrue)/sumRawLC;
+  const receptiveBase = CH.reduce((a,c,i)=> a + per[i].own*c.recept, 0);
+  const rows = CH.map((c,i)=>{
+    const trueRev = per[i].trueRev;
+    const lastClickRev = rawLC[i]*lcScale;
+    const haloLoss = (c.type==='awareness') ? (c.halo*per[i].sa*HALO)*receptiveBase : 0;
+    const incremental = trueRev*(1-c.subst) + haloLoss;
+    const conv = c.aov>0 ? trueRev/c.aov : 0;
+    const sp = per[i].sp;
+    return {spend:sp, clicks: c.cpc>0? sp/c.cpc:0, conv, trueRev, lastClickRev, incremental,
+      cpa: conv>0? sp/conv:0,
+      roasLC: sp>0? lastClickRev/sp:0, roasMMM: sp>0? trueRev/sp:0, roasIncr: sp>0? incremental/sp:0,
+      active: st[i].active, sat:per[i].sa};
+  });
+  const T = f => rows.reduce((a,r)=>a+r[f],0);
+  const totalSpend = T('spend');
+  return {rows, totalSpend, revLC:T('lastClickRev'), revMMM:sumTrue, revIncr:T('incremental'),
+    totalConv:T('conv'),
+    roasLC: totalSpend? T('lastClickRev')/totalSpend:0,
+    roasMMM: totalSpend? sumTrue/totalSpend:0,
+    roasIncr: totalSpend? T('incremental')/totalSpend:0};
+}
+
+// formatting
+const money = v => '$'+Math.round(v).toLocaleString('en-US');
+const moneyK = v => v>=1000 ? '$'+(v/1000).toFixed(v>=10000?0:1)+'k' : '$'+Math.round(v);
+const num = v => Math.round(v).toLocaleString('en-US');
+const x2 = v => v.toFixed(2)+'×';
+
+// build channel rows once
+const list = document.getElementById('channelList');
+CH.forEach((c,i)=>{
+  const row = document.createElement('div');
+  row.className='ch'; row.id='ch'+i;
+  row.innerHTML = `
+    <div class="ch-top">
+      <span class="dot" style="background:${c.color}"></span>
+      <span class="ch-name">${c.name}</span>
+      <span class="tag ${c.type}">${c.type==='awareness'?'awareness':c.type==='capture'?'capture':'mixed'}</span>
+      <span class="toggle on" data-i="${i}"><span class="sw"></span><span class="tg-lab">ON</span></span>
+    </div>
+    <div class="ch-mid">
+      <div class="slider-wrap"><input type="range" min="0" max="${SLIDER_MAX}" step="500" value="${state[i].spend}" data-i="${i}"></div>
+      <div class="spendval" id="sp${i}">$0</div>
+    </div>
+    <div class="metrics">
+      <div class="m"><div class="l">Impressions</div><div class="v" id="imp${i}">0</div></div>
+      <div class="m"><div class="l">Clicks</div><div class="v" id="clk${i}">0</div></div>
+      <div class="m"><div class="l">Conversions</div><div class="v" id="cv${i}">0</div></div>
+      <div class="m"><div class="l">CPA</div><div class="v" id="cpa${i}">$0</div></div>
+    </div>
+    <div class="lenses">
+      <div class="lens lc"><div class="l"><span>Last-click</span></div><div class="v" id="rlc${i}">0×</div><div class="barwrap"><i id="blc${i}" style="background:var(--lc)"></i></div></div>
+      <div class="lens mmm"><div class="l"><span>MMM</span></div><div class="v" id="rmmm${i}">0×</div><div class="barwrap"><i id="bmmm${i}" style="background:var(--mmm)"></i></div></div>
+      <div class="lens incr"><div class="l"><span>Incremental</span></div><div class="v" id="rincr${i}">0×</div><div class="barwrap"><i id="bincr${i}" style="background:var(--incr)"></i></div></div>
+    </div>`;
+  list.appendChild(row);
+});
+
+// lab select
+const labSel = document.getElementById('labSelect');
+CH.forEach((c,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent='Remove: '+c.name; labSel.appendChild(o); });
+labSel.value = 3; // Reddit by default
+document.getElementById('chlegend').innerHTML = CH.map(c=>`<span><i style="background:${c.color}"></i>${c.name}</span>`).join('');
+
+// events
+list.querySelectorAll('input[type=range]').forEach(r=>{
+  r.addEventListener('input', e=>{ const i=+e.target.dataset.i; state[i].spend=+e.target.value; render(); });
+});
+list.querySelectorAll('.toggle').forEach(t=>{
+  t.addEventListener('click', e=>{ const i=+t.dataset.i; state[i].active=!state[i].active;
+    t.classList.toggle('on', state[i].active); t.querySelector('.tg-lab').textContent = state[i].active?'ON':'OFF';
+    document.getElementById('ch'+i).classList.toggle('off', !state[i].active); render(); });
+});
+labSel.addEventListener('change', renderLab);
+document.querySelectorAll('.tl-tabs button').forEach(b=> b.addEventListener('click', ()=>{
+  timelineMetric = b.dataset.m;
+  document.querySelectorAll('.tl-tabs button').forEach(x=> x.classList.toggle('active', x===b));
+  render();
+}));
+document.getElementById('budgetTarget').addEventListener('input', renderBudget);
+document.getElementById('resetBtn').addEventListener('click', ()=>setSpends(DEFAULTS,true));
+document.getElementById('evenBtn').addEventListener('click', ()=>{ const t=+document.getElementById('budgetTarget').value||100000; setSpends(CH.map(()=>Math.round(t/CH.length/500)*500),true); });
+document.getElementById('chaseBtn').addEventListener('click', ()=>{
+  // naive: pour into best last-click channels, cut awareness
+  const v = CH.map(c=> c.type==='awareness' ? 0 : (c.id==='email'?12000:c.id==='paid_search'?34000:c.id==='seo'?16000:c.id==='affiliate'?14000:20000));
+  setSpends(v,true);
+});
+function setSpends(arr,on){ CH.forEach((c,i)=>{ state[i].spend=arr[i]; if(on)state[i].active=true; });
+  CH.forEach((c,i)=>{ const r=list.querySelector(`input[type=range][data-i="${i}"]`); r.value=arr[i];
+    const t=list.querySelector(`.toggle[data-i="${i}"]`); t.classList.toggle('on',state[i].active); t.querySelector('.tg-lab').textContent=state[i].active?'ON':'OFF';
+    document.getElementById('ch'+i).classList.toggle('off',!state[i].active); });
+  render();
+}
+
+function renderBudget(){
+  const target = +document.getElementById('budgetTarget').value || 0;
+  const spent = state.reduce((a,s,i)=> a + (s.active? s.spend:0), 0);
+  const el = document.getElementById('budgetStatus');
+  if(!target){ el.textContent = money(spent)+' allocated'; el.className='pill'; return; }
+  const diff = spent-target;
+  if(Math.abs(diff) < 500){ el.textContent='On budget · '+money(spent); el.className='pill ok'; }
+  else if(diff>0){ el.textContent=money(spent)+' · over by '+money(diff); el.className='pill warn'; }
+  else { el.textContent=money(spent)+' · '+money(-diff)+' left'; el.className='pill ok'; }
+}
+
+// ---- timeline (conversions/revenue/spend as daily events, stacked by channel) ----
+function buildTimeline(m){
+  const which = timelineMetric;
+  const vals = m.rows.map(r => which==='conv' ? r.conv : which==='rev' ? r.trueRev : r.spend);
+  const total = vals.reduce((a,b)=>a+b,0);
+  const W=720,H=230,L=8,R=8,Tp=14,B=18, pw=W-L-R, ph=H-Tp-B, base=Tp+ph;
+  let svg='';
+  for(let g=0; g<=2; g++){ const y=Tp+ph*g/2; svg+=`<line x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}" stroke="#EEF2FA" stroke-width="1"/>`; }
+  if(total>0){
+    const maxStack = total*maxShare*1.10;
+    const step=pw/DAYS, bw=step*0.64;
+    let peak={v:-1,x:0,y:0};
+    for(let d=0; d<DAYS; d++){
+      const x=L+step*d+(step-bw)/2; let y=base, dayTot=0;
+      for(let i=0;i<CH.length;i++){
+        const v=vals[i]*share[d]; if(v<=0) continue; dayTot+=v;
+        const hh=v/maxStack*ph; y-=hh;
+        svg+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0.4,hh).toFixed(1)}" fill="${CH[i].color}"><title>Day ${d+1} · ${CH[i].name}: ${fmtMetric(which,v)}</title></rect>`;
+      }
+      if(dayTot>peak.v) peak={v:dayTot, x:x+bw/2, y};
+    }
+    if(peak.v>0){
+      svg+=`<circle cx="${peak.x.toFixed(1)}" cy="${peak.y.toFixed(1)}" r="3.4" fill="#0E161E"/>`;
+      const tx=Math.min(W-R-30, Math.max(L+30, peak.x));
+      svg+=`<text x="${tx.toFixed(1)}" y="${(peak.y-7).toFixed(1)}" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#0E161E" text-anchor="middle">Peak · ${fmtMetric(which,peak.v)}</text>`;
+    }
+  } else {
+    svg+=`<text x="${W/2}" y="${(Tp+ph/2).toFixed(1)}" font-family="Poppins,sans-serif" font-size="12" fill="#9AA7B6" text-anchor="middle">No active channels — switch one on</text>`;
+  }
+  document.getElementById('timeline').innerHTML = svg;
+}
+
+// ---- metric distribution by channel (100% stacked) ----
+function buildDist(m){
+  const defs=[
+    ['Spend',         i=>m.rows[i].spend,        true],
+    ['Impressions',   i=>m.rows[i].clicks/0.02,  false],
+    ['Clicks',        i=>m.rows[i].clicks,       false],
+    ['Conversions',   i=>m.rows[i].conv,         false],
+    ['Revenue (MMM)', i=>m.rows[i].trueRev,      true],
+    ['Incremental',   i=>m.rows[i].incremental,  true],
+  ];
+  let html='';
+  defs.forEach(([label,fn,isMoney])=>{
+    const vals=CH.map((c,i)=>fn(i)); const total=vals.reduce((a,b)=>a+b,0);
+    let segs='';
+    if(total>0){ CH.forEach((c,i)=>{ const v=vals[i]; if(v<=0) return; const pct=v/total*100; const fmt=isMoney?money(v):num(v);
+      segs+=`<i style="width:${pct.toFixed(2)}%;background:${c.color}" title="${c.name}: ${fmt} (${pct.toFixed(1)}%)"></i>`; }); }
+    html+=`<div class="distrow"><div class="dl"><span>${label}</span><b>${total>0?(isMoney?money(total):num(total)):'—'}</b></div><div class="distbar">${segs}</div></div>`;
+  });
+  document.getElementById('dist').innerHTML = html;
+}
+
+const MAXROAS_BAR = 7; // scale for mini bars
+function render(){
+  const m = compute(state);
+  document.getElementById('kpiSpend').textContent = money(m.totalSpend);
+  document.getElementById('kpiConv').textContent = num(m.totalConv);
+  document.getElementById('kpiRev').textContent = money(m.revMMM);
+  document.getElementById('roasLC').textContent = x2(m.roasLC);
+  document.getElementById('roasMMM').textContent = x2(m.roasMMM);
+  document.getElementById('roasIncr').textContent = x2(m.roasIncr);
+
+  m.rows.forEach((r,i)=>{
+    const c=CH[i];
+    document.getElementById('sp'+i).textContent = money(r.spend);
+    const imp = c.cpc>0 ? r.clicks/0.02 : 0; // assume ~2% CTR for impressions display
+    document.getElementById('imp'+i).textContent = r.active? num(imp):'—';
+    document.getElementById('clk'+i).textContent = r.active? num(r.clicks):'—';
+    document.getElementById('cv'+i).textContent  = r.active? num(r.conv):'—';
+    document.getElementById('cpa'+i).textContent = (r.active&&r.conv>0)? money(r.cpa):'—';
+    document.getElementById('rlc'+i).textContent  = r.active? x2(r.roasLC):'—';
+    document.getElementById('rmmm'+i).textContent = r.active? x2(r.roasMMM):'—';
+    document.getElementById('rincr'+i).textContent= r.active? x2(r.roasIncr):'—';
+    document.getElementById('blc'+i).style.width  = Math.min(100,r.roasLC/MAXROAS_BAR*100)+'%';
+    document.getElementById('bmmm'+i).style.width = Math.min(100,r.roasMMM/MAXROAS_BAR*100)+'%';
+    document.getElementById('bincr'+i).style.width= Math.min(100,r.roasIncr/MAXROAS_BAR*100)+'%';
+  });
+
+  // triangulation bars (scale to max of the three)
+  const mx = Math.max(m.roasLC,m.roasMMM,m.roasIncr,0.01);
+  document.getElementById('triLC').style.width = m.roasLC/mx*100+'%';
+  document.getElementById('triMMM').style.width = m.roasMMM/mx*100+'%';
+  document.getElementById('triIncr').style.width = m.roasIncr/mx*100+'%';
+  document.getElementById('triLCv').textContent = x2(m.roasLC);
+  document.getElementById('triMMMv').textContent = x2(m.roasMMM);
+  document.getElementById('triIncrv').textContent = x2(m.roasIncr);
+
+  // dynamic insight: most over/under valued by last-click vs incremental
+  const act = m.rows.map((r,i)=>({i,r})).filter(o=>o.r.active && o.r.spend>0);
+  let over=null, under=null;
+  act.forEach(o=>{
+    const gapOver = o.r.roasLC - o.r.roasIncr;       // last-click flatters
+    const gapUnder = o.r.roasIncr - o.r.roasLC;       // last-click hides value
+    if(!over || gapOver>over.g) over={i:o.i,g:gapOver};
+    if(!under || gapUnder>under.g) under={i:o.i,g:gapUnder};
+  });
+  const insEl = document.getElementById('insight');
+  if(over && under && over.g>0 && under.g>0){
+    insEl.innerHTML = `On these settings, last-click <b>over-credits ${CH[over.i].name}</b> (looks like ${x2(m.rows[over.i].roasLC)} but only ${x2(m.rows[over.i].roasIncr)} is incremental) and <b>under-credits ${CH[under.i].name}</b> (last-click shows ${x2(m.rows[under.i].roasLC)}, truly worth ${x2(m.rows[under.i].roasIncr)}). Optimise on last-click alone and you'd defund the wrong channel.`;
+  } else {
+    insEl.innerHTML = `Adjust the budgets to see how each lens re-ranks the channels.`;
+  }
+  buildTimeline(m);
+  buildDist(m);
+  renderBudget();
+  renderLab();
+}
+
+function renderLab(){
+  const idx = +labSel.value;
+  const onState  = state.map((s,i)=> i===idx ? {...s, active:true } : s);
+  const offState = state.map((s,i)=> i===idx ? {...s, active:false} : s);
+  const mOn = compute(onState), mOff = compute(offState);
+  const r = mOn.rows[idx];
+  const totalImpact = mOn.revMMM - mOff.revMMM;     // own + halo loss
+  const own = r.trueRev;
+  const assists = Math.max(0, totalImpact - own);
+  const convLost = mOn.totalConv - mOff.totalConv;
+  document.getElementById('labLC').textContent   = money(r.lastClickRev);
+  document.getElementById('labIncr').textContent = money(r.incremental);
+  document.getElementById('labOwn').textContent  = money(own);
+  document.getElementById('labHalo').textContent = money(assists);
+  document.getElementById('labConv').textContent = num(convLost);
+  document.getElementById('labRoas').textContent = x2(mOff.roasMMM);
+
+  const v = document.getElementById('labVerdict');
+  const lc = r.lastClickRev, inc = r.incremental, c=CH[idx];
+  if(inc > lc*1.25){
+    const pct = Math.round((inc/lc-1)*100);
+    v.className='verdict under';
+    v.innerHTML = `<b>Last-click is undervaluing ${c.name} by ~${pct}%.</b> Most of its value is upstream — it drives demand that converts on other channels (${money(assists)} in assists). Cut it because last-click looks weak, and you'd quietly lose ${num(convLost)} conversions across the whole campaign.`;
+  } else if(lc > inc*1.4){
+    const pct = Math.round((1-inc/lc)*100);
+    v.className='verdict over';
+    v.innerHTML = `<b>Last-click is overvaluing ${c.name} by ~${pct}%.</b> It catches the final click, but much of this demand would convert anyway. Its true incremental value is only ${money(inc)} — far below the ${money(lc)} last-click assigns. Don't keep scaling it on the headline number alone.`;
+  } else {
+    v.className='verdict fair';
+    v.innerHTML = `For ${c.name}, the three lenses roughly agree here — last-click ${money(lc)} vs incremental ${money(inc)}. Removing it would cost about ${money(totalImpact)} and ${num(convLost)} conversions.`;
+  }
+}
+
+render();
+</script>
+</body>
+</html>
